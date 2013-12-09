@@ -1,6 +1,0 @@
-
-    <resources>
-        <dimen name="text_small">5pt</dimen>
-        <dimen name="text_chat_message">6pt</dimen>
-        <dimen name="text_chat_send_window">6pt</dimen>
-    </resources>
