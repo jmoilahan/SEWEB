@@ -1,0 +1,64 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+        
+			<LinearLayout
+			   android:layout_width="match_parent"
+    		   android:layout_height="match_parent"
+    		   android:orientation="vertical"
+    		   android:weightSum = "10">
+			    
+            	<TextView
+            	    android:id="@+id/tvChatAll"
+            	    android:layout_width="fill_parent"
+            	    android:layout_height="0dp"
+            	    android:layout_weight="8"
+            	    android:background="@android:color/background_dark"
+            	    android:scrollHorizontally="false"
+            	    android:maxLines = "28"
+					android:scrollbars = "vertical"
+            	    android:textColor="@android:color/white"
+            	    android:textSize="@dimen/text_chat_message" />
+            	
+            	<!-- android:layout_height="wrap_content"
+            	android:layout_width="match_parent"
+            	android:maxHeight="24dp"
+					android:minHeight="24dp" 
+            	-->
+                
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="2"
+                    android:weightSum="6">
+                    
+                    <!--android:ems="5"
+                    android:layout_height="fill_parent"
+                    android:minHeight="12dp"-->
+
+					<EditText
+					    android:id="@+id/editMessage"
+					    android:layout_width="0dp"
+					    android:layout_height="match_parent"
+					    android:layout_gravity="bottom"
+					    android:layout_weight="5">
+             		</EditText>
+             		
+					<!-- android:layout_width="310dp" 
+					android:inputType="textMultiLine"
+					-->
+					
+            		<Button
+            		    android:id="@+id/btSendMessage"
+            		    style="?android:attr/buttonStyleSmall"
+            		    android:layout_width="0dp"
+            		    android:layout_height="match_parent"
+            		    android:layout_gravity="bottom"
+            		    android:text="Send"
+            		    android:layout_weight="1"/>
+
+        		</LinearLayout>
+       		</LinearLayout>
+</LinearLayout>

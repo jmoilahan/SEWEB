@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">SEWEB Chat</string>
+    <string name="menu_settings">Settings</string>
+    <string name="title_activity_chat">Chat</string>
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_buddy_list">Buddy List</string>
+    <string name="title_activity_login">Log in</string>
+    <string name="login_button">Press to log in</string>
+    <string name="killall_button">Kill em all!</string>
+    <string name="new_message_ticker">New messages</string>
+    <string name="notification_text">Some text</string>
+    <string name="kill_process">Kill Process</string>
+    <string name="remote_service_started">Remote service has started</string>
+    <string name="remote_service_stopped">Remote service has stopped</string>
+    <string name="remote_service_label">Sample Remote Service</string>
+    <string name="remote_service_controller">This demonstrates how you can implement persistent services
+        running in a separate process that may be started and stopped as desired.</string>
+    <string name="remote_service_binding">This demonstrates how you can connect with a persistent service running in another process.  Use the kill button to see what happens when
+        the process crashes.</string>
+    <string name="remote_service_connected">Connected to remote service</string>
+    <string name="remote_service_disconnected">Disconnected from remote service</string>
+    <string name="remote_service_unbind_disconn">Unbinding due to disconnect</string>
+    <string name="remote_call_failed">Failure calling remote service</string>
+    <string name="activity_remote_service_binding_options">App/Service/Remote Service Binding Options</string>
+    <string name="activity_remote_service_binding">App/Service/Remote Service Binding</string>
+    <string name="activity_remote_service_controller">App/Service/Remote Service Controller</string>
+    <string name="activity_service_start_arguments_controller">App/Service/Service Start Arguments Controller</string>
+    <string name="activity_local_service_controller">App/Service/Local Service Controller</string>
+    <string name="activity_local_service_binding">App/Service/Local Service Binding</string>
+    <string name="service_start_arguments_controller">This demonstrates how service can be started with arguments, and run until all arguments are
+           processed. </string>
+    <string name="service_start_arguments_label">Sample Service Start Arguments</string>
+    <string name="start_service">Start Service</string>
+    <string name="stop_service">Stop Service</string>
+    <string name="bind_service">Bind Service</string>
+    <string name="unbind_service">Unbind Service</string>
+    <string name="local_service_started">Local service has started</string>
+    <string name="local_service_stopped">Local service has stopped</string>
+    <string name="local_service_label">Sample Local Service</string>
+    <string name="local_service_controller">This demonstrates how you can implement persistent services that
+        may be started and stopped as desired.</string>
+    <string name="local_service_connected">Connected to local service</string>
+    <string name="local_service_disconnected">Disconnected from local service</string>
+    <string name="local_service_binding">This demonstrates how you can connect with a persistent
+        service.  Notice how it automatically starts for you, and play around with the
+        interaction between this and Local Service Controller.</string>
+    <string name="title_activity_total_kill_view">TotalKillView</string>
+    <string name="hello_world">Hello world!</string>
+
+</resources>
