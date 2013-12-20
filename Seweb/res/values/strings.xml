@@ -10,6 +10,9 @@
     <string name="login_button">Press to log in</string>
     <string name="killall_button">Kill em all!</string>
     <string name="new_message_ticker">New messages</string>
+    <string name="emptyList">List is empty</string>
+    <string name="presence_icon">User presence icon</string>
+    
     <string name="notification_text">Some text</string>
     <string name="kill_process">Kill Process</string>
     <string name="remote_service_started">Remote service has started</string>

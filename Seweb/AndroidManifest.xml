@@ -24,7 +24,7 @@
 
     <uses-sdk
         android:minSdkVersion="8"
-        android:targetSdkVersion="19" />
+        android:targetSdkVersion="8" />
 
     <instrumentation
         android:name="android.test.InstrumentationTestRunner"
@@ -39,7 +39,8 @@
         android:theme="@style/AppTheme" >
         <activity
             android:name="fi.seweb.client.app.LoginView"
-            android:label="@string/title_activity_login" >
+            android:label="@string/title_activity_login"
+            android:configChanges="keyboardHidden|orientation" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -47,16 +48,17 @@
         </activity>
         <activity
             android:name="fi.seweb.client.app.BuddyListView"
-            android:label="@string/title_activity_buddy_list" >
+            android:label="@string/title_activity_buddy_list"
+            android:configChanges="keyboardHidden|orientation"  >
         </activity>
         <activity
             android:name="fi.seweb.client.app.TotalKillView"
             android:label="@string/title_activity_total_kill_view" >
         </activity>
-        <!-- activity
+        <activity
             android:name="fi.seweb.client.app.ChatView"
             android:label="@string/title_activity_chat" >
-        </activity> -->
+        </activity>
 
         <service 
             android:name="fi.seweb.client.xmpp.SewebNotificationService" 

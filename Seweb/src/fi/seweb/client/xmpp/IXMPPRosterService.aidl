@@ -4,9 +4,9 @@ import fi.seweb.client.xmpp.IXMPPRosterCallback;
 
 interface IXMPPRosterService {
 	
-	/* xmpp methods */
+	/* xmpp methods 
 	void disconnect();
-	void connect();
+	void connect(); */
 	
 	/*void addRosterItem(String user, String alias, String group);
 	void addRosterGroup(String group);
@@ -15,6 +15,8 @@ interface IXMPPRosterService {
 	void requestAuthorizationForRosterItem(String user);
 	void renameRosterItem(String user, String newName);
 	void moveRosterItemToGroup(String user, String group);*/
+	
+	//String[] getRosterItems();
 	
 	/* callback methods */
 	void registerRosterCallback(IXMPPRosterCallback callback);

@@ -2,6 +2,7 @@ package fi.seweb.client.app;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -18,27 +19,22 @@ public class LoginView extends Activity {
 		Log.i(TAG, "onCreate called");
 		super.onCreate(savedInstanceState);
 		
-		Intent intent = new Intent(this, SewebNotificationService.class);
-		intent.setAction("Starting XMPPService from LoginView");
-		startService(intent);
-		
 		setContentView(R.layout.activity_login);
 		final Button btLogin = (Button) findViewById(R.id.btLogin);
 		btLogin.setOnClickListener(new View.OnClickListener() {
         	@Override public void onClick(View v) {
-        		Intent intent = new Intent();
-        		intent.setClass(getApplicationContext(), BuddyListView.class);
-        		startActivity(intent);
+        		
+        		Intent serviceIntent = new Intent(LoginView.this, SewebNotificationService.class);
+        		serviceIntent.setAction("Starting SewebNotificationService from LoginView");
+        		startService(serviceIntent);
+        		
+        		Intent activityIntent = new Intent();
+        		activityIntent.setClass(getApplicationContext(), BuddyListView.class);
+        		startActivity(activityIntent);
         		finish();
         	}
 		});
 	}
-	
-	
-	
-	
-	
-	
 	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -46,5 +42,12 @@ public class LoginView extends Activity {
 		getMenuInflater().inflate(R.menu.login_view, menu);
 		return true;
 	}
-
+	
+	// ignoring the screen rotation changed events.
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+      super.onConfigurationChanged(newConfig);
+      Log.i(TAG, "OnConfigurationChanged() called");
+    }
+	
 }
