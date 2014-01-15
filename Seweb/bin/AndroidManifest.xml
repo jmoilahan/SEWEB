@@ -24,7 +24,7 @@
 
     <uses-sdk
         android:minSdkVersion="8"
-        android:targetSdkVersion="17" />
+        android:targetSdkVersion="8" />
 
     <instrumentation
         android:name="android.test.InstrumentationTestRunner"
@@ -38,21 +38,40 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
-            android:name="fi.seweb.client.app.BuddyListView"
-            android:label="@string/title_activity_buddy_list" android:launchMode="standard">
+            android:name="fi.seweb.client.app.LoginView"
+            android:label="@string/title_activity_login"
+            android:configChanges="keyboardHidden|orientation" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <service android:name="fi.seweb.client.xmpp.XMPPService" />
-		
+        <activity
+            android:name="fi.seweb.client.app.BuddyListView"
+            android:label="@string/title_activity_buddy_list"
+            android:configChanges="keyboardHidden|orientation"  >
+        </activity>
+        <activity
+            android:name="fi.seweb.client.app.TotalKillView"
+            android:label="@string/title_activity_total_kill_view" >
+        </activity>
         <activity
             android:name="fi.seweb.client.app.ChatView"
             android:label="@string/title_activity_chat" >
         </activity>
-        
-    </application>
+
+        <service 
+            android:name="fi.seweb.client.xmpp.SewebNotificationService" 
+            android:process=":remote"
+            android:exported="false">
+			<intent-filter>
+                <!-- These are the interfaces supported by the service, which
+                     you can bind to. -->
+                <action android:name="fi.seweb.client.xmpp.IXMPPRosterService" />
+                <action android:name="fi.seweb.client.xmpp.IXMPPChatService" />
+           </intent-filter>
+         </service>
+
+     </application>
 
 </manifest>
