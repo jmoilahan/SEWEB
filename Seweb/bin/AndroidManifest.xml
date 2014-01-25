@@ -25,21 +25,24 @@
     <uses-sdk
         android:minSdkVersion="8"
         android:targetSdkVersion="8" />
-
+    
     <instrumentation
         android:name="android.test.InstrumentationTestRunner"
-        android:targetPackage="fi.seweb" >
+        android:targetPackage="fi.seweb.client.common" >
     </instrumentation>
 
     <application
         android:allowBackup="true"
         android:debuggable="true"
-        android:icon="@drawable/ic_launcher"
+        android:icon="@drawable/seweb_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
+        
+        <uses-library android:name="android.test.runner" />
+        
         <activity
             android:name="fi.seweb.client.app.LoginView"
-            android:label="@string/title_activity_login"
+            android:label="@string/app_name"
             android:configChanges="keyboardHidden|orientation" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -48,7 +51,7 @@
         </activity>
         <activity
             android:name="fi.seweb.client.app.BuddyListView"
-            android:label="@string/title_activity_buddy_list"
+            android:label="@string/app_name"
             android:configChanges="keyboardHidden|orientation"  >
         </activity>
         <activity
