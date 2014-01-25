@@ -34,11 +34,12 @@ public class ObjectConverter {
 			JSONObject jsonObject = new JSONObject(jsonString);
 			message = toMessage(jsonObject);
 
-		} catch (JSONException e) {
-			Log.e(TAG, "Error parsing json string: " + e.getMessage());
+		} catch (Exception e) {
+			System.out.println(TAG + " Error parsing json string: " + e.getMessage());
+			throw new RuntimeException(e);
 		}
 		
-		Log.i(TAG, "Parsed message: " + message.toXML());
+		System.out.println(TAG + " Parsed message: " + message.toXML());
 		
 		return message;
 	}
@@ -65,7 +66,16 @@ public class ObjectConverter {
 			JSONObject jsonObj = toJSONObject(msg);
 			jsonArray.put(jsonObj);
 		}
-		return jsonArray.toString();
+		
+		JSONObject messagesObj = new JSONObject();
+		try {
+		    messagesObj.put(TAG_ARRAY, jsonArray);
+		} catch (JSONException e) {
+			System.out.println(TAG + " Failed to construct a json array");
+			throw new RuntimeException(e);
+		}
+		
+		return messagesObj.toString();
 	}
 	
 	public static ArrayList<Message> toArrayList (String jsonArray) {
@@ -87,8 +97,9 @@ public class ObjectConverter {
             	Message message = toMessage(c);
             	array.add(message);
             }
-		} catch (JSONException e) {
-			Log.e(TAG, "Failed to parse the json array: " + jsonArray);
+		} catch (Exception e) {
+			System.out.println(TAG + " Failed to parse the json array: " + jsonArray);
+			throw new RuntimeException(e);
 		}
 
 		return array;
@@ -103,13 +114,15 @@ public class ObjectConverter {
 		String to = message.getTo();
 		String threadID = message.getThread();
 		String type = message.getType().name();
+		long time = (Long) message.getProperty(TAG_TIMESTAMP);
 		
 		//are all message's fields are non empty / non null?
 		if (body == null      || body.length() == 0     ||
 			from == null      || from.length() == 0     ||
 			to == null        || to.length() == 0       ||
 			threadID == null  || threadID.length() == 0 ||
-			type == null      || type.length() == 0       ) {
+			type == null      || type.length() == 0     ||
+			time == 0      								  ) {
 			return new JSONObject();
 		}
 		
@@ -121,8 +134,10 @@ public class ObjectConverter {
 		    jsonObj.put(TAG_TO, to);
 		    jsonObj.put(TAG_THREADID, threadID);
 		    jsonObj.put(TAG_TYPE, type);
-		} catch (JSONException e) {
-		    Log.e(TAG, "Error while converting a message to a jsonString: " + e.getMessage());
+		    jsonObj.put(TAG_TIMESTAMP, time);
+		} catch (Exception e) {
+			System.out.println(TAG + " Error while converting a message to a jsonString: " + e.getMessage());
+			throw new RuntimeException(e);
 		}
 		
 		return jsonObj;
@@ -142,11 +157,13 @@ public class ObjectConverter {
 			String to = jsonObj.getString(TAG_TO);
 			String threadID = jsonObj.getString(TAG_THREADID);
 			String typeStr = jsonObj.getString(TAG_TYPE);
+			long time = (Long) jsonObj.get(TAG_TIMESTAMP);
 		
 			msg.setBody(body);
 			msg.setFrom(from);
 			msg.setTo(to);
 			msg.setThread(threadID);
+			msg.setProperty(TAG_TIMESTAMP, time);
 		
 			if (typeStr.equalsIgnoreCase(Type.chat.name())) {
 				msg.setType(Type.chat);
@@ -159,9 +176,9 @@ public class ObjectConverter {
 			} else if (typeStr.equalsIgnoreCase(Type.normal.name())) {
 				msg.setType(Type.normal);
 			}
-		} catch (JSONException e) {
-			Log.e(TAG, "Failed to covert a json object to message: " + jsonObj.toString());
-			return null;
+		} catch (Exception e) {
+			System.out.println(TAG + " Failed to covert a json object to message: " + jsonObj.toString());
+			throw new RuntimeException(e);
 		}
 		
 		return msg;

@@ -1,5 +1,6 @@
 package fi.seweb.client.xmpp;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 
@@ -167,7 +168,9 @@ public class SewebNotificationService extends Service {
 			if (jid == null || jid.length() == 0 || !fi.seweb.client.common.StringUtils.isValidJid(jid))
 				return "";
 			
-			Message lastMessage = null;
+			//Message lastMessage = null;
+			
+			ArrayList<Message> messageArray = new ArrayList<Message>();
 			
 			// are there existing chats with this user?
 			if (mChats.containsKey(jid)) {
@@ -176,16 +179,20 @@ public class SewebNotificationService extends Service {
 				
 				if (mMessages.hasMessagesFor(chatID)) {
 					//retrieve messages
-					lastMessage = mMessages.getLast(chatID);
+					messageArray = mMessages.retrieveMessage(chatID);
+					//lastMessage = mMessages.getLast(chatID);
 				}
 			}
 			
-			if (lastMessage == null) {
+			if (messageArray.isEmpty()) {
+				Log.i(TAG, "obtainLastMessage: no messages for " + jid);
+				return "{}";
+			}
+			/*if (lastMessage == null) {
 				Log.i(TAG, "obtainLastMessage: " + "lastMessage is null");
 				return "";
-			}
-
-			return ObjectConverter.toJson(lastMessage);
+			}*/
+			return ObjectConverter.toJSONArray(messageArray);
 		}
 	};
 	
@@ -374,7 +381,6 @@ public class SewebNotificationService extends Service {
     }
     
     private class SewebRosterListener implements RosterListener {
-		
 		@Override
 		public void entriesAdded(Collection<String> arg0) {}
 		@Override
@@ -426,7 +432,6 @@ public class SewebNotificationService extends Service {
 					}
 				}
 			});
-			
 		}
     }
     
@@ -471,21 +476,7 @@ public class SewebNotificationService extends Service {
 			final String chatID = chat.getThreadID();
 			mMessages.addMessage(chatID, message);
 			Log.i(TAG, "Message stored");
-			
-			/*
-			if (!mMessages.containsKey(chatID)) {
-				Queue <Message> q = new LinkedList <Message> (); 
-				q.add(message);
-				mMessages.put(chatID, q);
-				Log.i(TAG, "Message stored (new queue)");
-			} else {
-				//get the storage and add the message
-				Queue<Message> q = mMessages.get(chatID);
-				q.add(message);
-				Log.i(TAG, "Message stored");
-			}
-			*/
-				
+
 			// if a chat view is bound
 			// send the message through the chatcallback
 			// use the handler

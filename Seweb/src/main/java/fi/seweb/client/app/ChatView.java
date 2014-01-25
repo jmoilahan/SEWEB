@@ -1,6 +1,7 @@
 package fi.seweb.client.app;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
@@ -136,12 +137,18 @@ public class ChatView extends Activity {
 			try {
 				String lastMessageStr = mChatService.obtainLastMessage(mRemoteUserJID);
 				if (lastMessageStr != null && lastMessageStr.length() != 0) {
-					Message message = ObjectConverter.toMessage(lastMessageStr);
-					String from = StringUtils.parseBareAddress(message.getFrom());
-					if (from.equalsIgnoreCase(mRemoteUserJID)) {
-						addNewChatMessage(from, message.getBody(), Color.GREEN);
-					} else {
-						addNewChatMessage(from, message.getBody(), Color.RED);
+					
+					ArrayList<Message> messageArray = ObjectConverter.toArrayList(lastMessageStr);
+					//Message message = ObjectConverter.toMessage(lastMessageStr);
+					if (!messageArray.isEmpty()) {
+						for (Message m : messageArray) {
+							String from = StringUtils.parseBareAddress(m.getFrom());
+							if (from.equalsIgnoreCase(mRemoteUserJID)) {
+								addNewChatMessage(from, m.getBody(), Color.GREEN);
+							} else {
+								addNewChatMessage(from, m.getBody(), Color.RED);
+							}
+						}
 					}
 				} // do nothing if message is null or empty 
 			} catch (RemoteException e) {

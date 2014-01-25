@@ -28,6 +28,9 @@ public class MessageStorage {
 		
 		ArrayList <Message> messageArray = null;
 		
+		//adding the timestamp
+		message.setProperty("timestamp", System.currentTimeMillis());
+		
 		if (mData.containsKey(chatID)) {
 			messageArray =  mData.get(chatID);
 			if (messageArray != null) {
