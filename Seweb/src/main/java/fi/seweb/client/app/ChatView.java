@@ -46,8 +46,6 @@ public class ChatView extends Activity {
 	private boolean mBound;
 	private IXMPPChatService mChatService;
 	private String mRemoteUserJID = null;
-	//TODO: Remove it, we probably dont need to have this.
-	private boolean mStartedFromBuddyList = false;
 	
 	 @Override
 	 public void onCreate(Bundle savedInstanceState) {
@@ -71,10 +69,6 @@ public class ChatView extends Activity {
 	     		} else {
 	 		 		Log.e(TAG, "Remote_JID is not found in the bundle!");
 	 	 		}
-	 	 		
-	 	 		if (getIntent().hasExtra("StartedFromBuddyList")) {
-	 	 			mStartedFromBuddyList = b.getBoolean("StartedFromBuddyList");
-	 	 		}
 	     	}
 	     
 	     TextView tvChat = (TextView) findViewById(R.id.tvChatAll);
@@ -89,10 +83,11 @@ public class ChatView extends Activity {
 				String message = editText.getText().toString();
 				if (message.length() != 0 && message != null ) {
 					String from = SewebPreferences.USERNAME; // our name
-					addNewChatMessage(from, message, Color.RED);
+					long timestamp = System.currentTimeMillis();
+					addNewChatMessage(from, message, fi.seweb.client.common.StringUtils.parseTime(timestamp), Color.RED);
 					try {
 						if (mBound) {
-							mChatService.sendMessage(mRemoteUserJID, message);
+							mChatService.sendMessage(mRemoteUserJID, message, timestamp);
 						}
 					} catch (RemoteException e) {
 						Log.e(TAG, e.getMessage());
@@ -108,13 +103,16 @@ public class ChatView extends Activity {
 			Log.i(TAG, "handleMessage() called");
 			if (msg.what == SewebPreferences.NEW_CHAT_MESSAGE) {
 				// new incoming chat message has arrived
-				String chatMessage = (String) msg.obj;
-				if (chatMessage != null && !chatMessage.equals("")) {
-					final String from = mRemoteUserJID; //StringUtils.parseName(address);
-					final String body = chatMessage; //chatMessage.getBody();
-					//chatMessageReceived(from, body, Color.GREEN);
-					Log.i(TAG, String.format("Adding new message '%1$s' from %2$s", body, from));
-					addNewChatMessage(from, body, Color.GREEN);
+				String [] payload = (String[]) msg.obj;
+				if (payload.length > 0) {
+					String body = payload[0]; 
+					String timestamp = payload[1];
+					
+					if (body != null && body.length() != 0 && timestamp != null && timestamp.length() != 0) {
+						final String from = mRemoteUserJID; //StringUtils.parseName(address);
+						addNewChatMessage(from, body, timestamp, Color.GREEN);
+						Log.i(TAG, String.format("Adding new message '%1$s' from %2$s", body, from));
+					}
 				}
 			}
 		}
@@ -143,10 +141,12 @@ public class ChatView extends Activity {
 					if (!messageArray.isEmpty()) {
 						for (Message m : messageArray) {
 							String from = StringUtils.parseBareAddress(m.getFrom());
+							String timestamp = fi.seweb.client.common.StringUtils.parseTime((Long) m.getProperty("timestamp"));
+							
 							if (from.equalsIgnoreCase(mRemoteUserJID)) {
-								addNewChatMessage(from, m.getBody(), Color.GREEN);
+								addNewChatMessage(from, m.getBody(), timestamp, Color.GREEN);
 							} else {
-								addNewChatMessage(from, m.getBody(), Color.RED);
+								addNewChatMessage(from, m.getBody(), timestamp, Color.RED);
 							}
 						}
 					}
@@ -166,15 +166,14 @@ public class ChatView extends Activity {
 	
 	private IXMPPChatCallback mChatCallback = new IXMPPChatCallback.Stub() {
 		@Override
-		public void newChatMessageReceived(String chat, String message)
+		public void newChatMessageReceived(String chat, String message, long timestamp)
 				throws RemoteException {
 			Log.i(ChatView.TAG, "newChatMessageReceived() called");
-			//Log.i(ChatView.TAG, "chat id: " + chat);
-			//Log.i(ChatView.TAG, "message: " + message);
 			
+    		String [] payload =  {message, fi.seweb.client.common.StringUtils.parseTime(timestamp)}; 
 			android.os.Message msg = mHandler.obtainMessage();
     		msg.what = SewebPreferences.NEW_CHAT_MESSAGE;
-    		msg.obj = message;
+    		msg.obj = payload;
 			mHandler.sendMessage(msg);
 		}
 	};
@@ -187,13 +186,14 @@ public class ChatView extends Activity {
     	     spannableText.setSpan(new ForegroundColorSpan(color), start, end, 0);
     }
     
-    private void addNewChatMessage (String from, String msg, int color) {
+    private void addNewChatMessage (String from, String msg, String timestamp, int color) {
     	TextView chatView = (TextView) findViewById(R.id.tvChatAll);
-    	    	
+    	/*    	
     	SimpleDateFormat sdf = new SimpleDateFormat("[HH:mm:ss]", Locale.UK);
     	String currentTime = sdf.format(new Date());
+    	*/
     	
-    	addColoredText(chatView, currentTime, Color.GRAY);
+    	addColoredText(chatView, timestamp, Color.GRAY);
     	addColoredText(chatView, " " + from + ": ", color);
     	chatView.append(msg + "\n");
     	
@@ -205,7 +205,7 @@ public class ChatView extends Activity {
                 chatView.scrollBy(0, scrollOffset);
         }
     }
-	
+    
 	@Override
 	public void onDestroy(){
 		super.onDestroy();

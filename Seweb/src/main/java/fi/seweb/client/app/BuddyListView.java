@@ -68,7 +68,6 @@ public class BuddyListView extends Activity {
 				
 				Bundle b = new Bundle();
 				b.putString("remoteJID", presence.user);
-				b.putBoolean("StartedFromBuddyList", true);
 				
 				Intent chatViewIntent = new Intent();
         		chatViewIntent.setClass(getApplicationContext(), ChatView.class);

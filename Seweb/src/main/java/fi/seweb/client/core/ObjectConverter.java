@@ -79,10 +79,11 @@ public class ObjectConverter {
 	}
 	
 	public static ArrayList<Message> toArrayList (String jsonArray) {
-		if (!isValidJSONArray(jsonArray))
-			throw new IllegalArgumentException("Failed to parse the json array: " + jsonArray);
 		if (jsonArray.toString().equalsIgnoreCase("{}"))
 			return new ArrayList<Message>();
+		if (!isValidJSONArray(jsonArray))
+			throw new IllegalArgumentException("Failed to parse the json array: " + jsonArray);
+		
 		
 		ArrayList <Message> array = new ArrayList<Message>();
 		

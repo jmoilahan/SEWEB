@@ -35,6 +35,7 @@ import android.widget.Toast;
 import fi.seweb.R;
 import fi.seweb.client.app.TotalKillView;
 import fi.seweb.client.common.SewebPreferences;
+import fi.seweb.client.core.LocalRoster;
 import fi.seweb.client.core.MessageStorage;
 import fi.seweb.client.core.ObjectConverter;
 import fi.seweb.client.xmpp.ping.PingPacketFilter;
@@ -55,13 +56,14 @@ public class SewebNotificationService extends Service {
 	
 	private XMPPConnection mXmppConnection;
 	
-	/* Mockup of a message database */
-	// String = chat id
-	//private HashMap<String, Queue<Message>> mMessages = new HashMap<String, Queue<Message>>();
-	MessageStorage mMessages = new MessageStorage();
+	/* a snapshot of the roster */
+	private LocalRoster mLocalRoster = new LocalRoster();
+	
+	/* a mockup of a message database */
+	private MessageStorage mMessages = new MessageStorage();
 	
 	/* String = full JID (RemoteUserID), e.g. "joni_pc@seweb.p1.im" 
-	 * Chat = object*/
+	 * Chat = a chat's instance */
 	private HashMap<String, Chat> mChats = new HashMap<String, Chat>();
 		
 	private final IXMPPRosterService.Stub mRoster2ServiceBinder = new IXMPPRosterService.Stub() {
@@ -106,7 +108,7 @@ public class SewebNotificationService extends Service {
 		/* @param toUser = full JID (e.g. "joni_pc@seweb.p1.im")
 		 */
 		@Override
-		public void sendMessage(String toUser, String message) throws RemoteException {
+		public void sendMessage(String toUser, String message, long timestamp) throws RemoteException {
 			Log.i(TAG, "sendMessage() called");
 			if (mXmppConnection != null && mXmppConnection.isConnected() && mXmppConnection.isAuthenticated()) {
 				Chat chat = null;
@@ -132,6 +134,7 @@ public class SewebNotificationService extends Service {
 				xmppMessage.setFrom(myJID); // from us
 				xmppMessage.setTo(toUser);
 				xmppMessage.setThread(chat.getThreadID());
+				xmppMessage.setProperty("timestamp", timestamp);
 				
 				try {
 					//chat.sendMessage(message);
@@ -199,7 +202,7 @@ public class SewebNotificationService extends Service {
 	@Override
 	public IBinder onBind(Intent intent) {
 		Log.i(TAG, "onBind() called");
-
+		
 		// Check the intent and return the correct interface
         if (IXMPPRosterService.class.getName().equals(intent.getAction())) {
         	Log.i(TAG, "Bound as " + intent.getAction());
@@ -220,6 +223,19 @@ public class SewebNotificationService extends Service {
 	public void onRebind(Intent intent) {
 		Log.i(TAG, "onRebind() called");
 		super.onRebind(intent);
+		
+		// Check the intent and return the correct interface
+        if (IXMPPRosterService.class.getName().equals(intent.getAction())) {
+        	Log.i(TAG, "Rebound as " + intent.getAction());
+        	Toast.makeText(this, "ReBound as " + intent.getAction(), Toast.LENGTH_SHORT).show();
+        	mBuddyViewBound = true;
+
+        } else if (IXMPPChatService.class.getName().equals(intent.getAction())) {
+        	Log.i(TAG, "Rebound as " + intent.getAction());
+        	Toast.makeText(this, "ReBound as " + intent.getAction(), Toast.LENGTH_SHORT).show();
+        	mChatViewBound = true;
+        }
+		
 	}
 	
 	@Override
@@ -234,12 +250,17 @@ public class SewebNotificationService extends Service {
         }
         
         if (IXMPPChatService.class.getName().equals(intent.getAction())) {
-        	Log.i(TAG, "Bound as " + intent.getAction());
-        	Toast.makeText(this, "Bound as " + intent.getAction(), Toast.LENGTH_SHORT).show();
+        	Log.i(TAG, "Unbinding: " + intent.getAction());
+        	Toast.makeText(this, "Unbinding: " + intent.getAction(), Toast.LENGTH_SHORT).show();
         	mChatViewBound = false; // all chat view clients were detached
+        	//TODO: remove:
+        	int items = mChatCallbacks.beginBroadcast();
+        	mChatCallbacks.finishBroadcast();
+        	Log.i(TAG, "ChatCallbacks broadcasts left: " + items);
         }
-
-        return false; // we don't want the onRebind() to be called.
+        
+        //TODO: change to false:
+        return true; // we don't want the onRebind() to be called.
 	}
 	
 	@Override
@@ -272,13 +293,16 @@ public class SewebNotificationService extends Service {
 			 		config.setRosterLoadedAtLogin(true);
 				} catch (XMPPException e) {
 					Log.e(TAG, "Error while creating an android configuration " + e.getMessage());
+					return;
 				} catch (NullPointerException e) {
 					Log.e(TAG, "Error while creating an android configuration " + e.getMessage());
+					return;
 				}
 		 		
 		 		SASLAuthentication.supportSASLMechanism("PLAIN");
 		 		SmackConfiguration.setDefaultPingInterval(5000);
 		 		mXmppConnection = new XMPPConnection(config);
+		 		
 		 		try {
 		 			Log.i(TAG, "Attempting to connect to XMPP Server " + SewebPreferences.DOMAIN);
 		 			mXmppConnection.connect();
@@ -292,6 +316,8 @@ public class SewebNotificationService extends Service {
 		 			//Toast.makeText(SewebNotificationService.this, "XMPP Server connection established", Toast.LENGTH_SHORT).show();
 		 			
 		 			mXmppConnection.getChatManager().addChatListener(new SewebChatManagerListener());
+		 			//need to populate the buddy list here
+		 			//mXmppConnection.getRoster().getEntries();
 		 		}
 		 		catch (final XMPPException e) {
 		 			Log.e(TAG, "Could not connect to " + SewebPreferences.DOMAIN + " server", e);
@@ -391,10 +417,6 @@ public class SewebNotificationService extends Service {
 		public void presenceChanged(Presence presence) {
 			Log.i(TAG, "Presense changed: " + StringUtils.parseBareAddress(presence.getFrom()));
 			Log.i(TAG, "Type: " + presence.getType() + " Mode: " + presence.getMode());
-			//do not broadcast if the buddy view is not bound
-			if (!mBuddyViewBound) {
-				return;
-			}
 			
 			final String user = StringUtils.parseBareAddress(presence.getFrom());
 			int presenceCode = SewebPreferences.ERROR;
@@ -415,6 +437,11 @@ public class SewebNotificationService extends Service {
 			
 			final int code = presenceCode;
 			final String status = statusTmp;
+			
+			//do not broadcast if the buddy view is not bound
+			if (!mBuddyViewBound) {
+				return;
+			}
 			
 			/* Use handler to process the callbacks */
 			mHandler.post(new Runnable() {
@@ -472,6 +499,9 @@ public class SewebNotificationService extends Service {
 			Log.i(TAG, "message:  '" + message.getBody());
 			Log.i(TAG, "Chat ID: '" + chat.getThreadID());
 			
+			// setting the timestamp
+			message.setProperty("timestamp", System.currentTimeMillis());
+			
 			// store the message for future retrieval
 			final String chatID = chat.getThreadID();
 			mMessages.addMessage(chatID, message);
@@ -482,12 +512,13 @@ public class SewebNotificationService extends Service {
 			// use the handler
 			if (mChatViewBound) {
 				final String body = message.getBody();
+				final long timestamp = (Long) message.getProperty("timestamp");
 				mHandler.post(new Runnable () {
 					@Override public void run() {
 						final int broadcastItems = mChatCallbacks.beginBroadcast();
 						for (int i = 0; i < broadcastItems; i++) {
 							try {
-								mChatCallbacks.getBroadcastItem(i).newChatMessageReceived(chatID, body);
+								mChatCallbacks.getBroadcastItem(i).newChatMessageReceived(chatID, body, timestamp);
 								Log.i(TAG, "Chat Callback Broadcast " + "newChatMessageReceived()");
 							} catch (RemoteException e) {
 								Log.e(TAG, "RemoteException: " + e.getMessage());

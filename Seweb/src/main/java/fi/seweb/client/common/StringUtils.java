@@ -42,7 +42,8 @@ public class StringUtils {
 		if (timeStr == null || timeStr.length() == 0)
 			throw new IllegalArgumentException("timeStr should not be null or empty");
 		
-		FORMAT.setTimeZone(TimeZone.getTimeZone("GMT"));
+		//FORMAT.setTimeZone(TimeZone.getTimeZone("GMT"));
+		FORMAT.setTimeZone(TimeZone.getDefault());
 		long timestamp = 0;
 		try {
 			Date d = FORMAT.parse(timeStr);
@@ -62,10 +63,12 @@ public class StringUtils {
 	public static String parseTime(long timestamp) {
 		if (timestamp < MINTIME)
 			throw new IllegalArgumentException("timestamp must be a positive long");
-		if (timestamp > MAXTIME) 
+		/*if (timestamp > MAXTIME) 
 			throw new IllegalArgumentException("timestamp is too large");
+			*/
 		
-		FORMAT.setTimeZone(TimeZone.getTimeZone("GMT"));
+		//FORMAT.setTimeZone(TimeZone.getTimeZone("GMT"));
+		FORMAT.setTimeZone(TimeZone.getDefault());
 		Calendar cal = Calendar.getInstance();
 		cal.setTimeInMillis(timestamp);
 		return FORMAT.format(cal.getTime());
