@@ -10,9 +10,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import fi.seweb.client.core.ObjectConverter;
+import fi.seweb.client.core.MessageConverter;
 
-public class TestObjectConverter {
+public class TestMessageConverter {
 
 	@Before
 	public void setUp() throws Exception {
@@ -46,10 +46,10 @@ public class TestObjectConverter {
 			originalArr.add(message);
 		}
 		
-		String jsonArray = ObjectConverter.toJSONArray(originalArr);
+		String jsonArray = MessageConverter.toJSONArray(originalArr);
 		assertNotNull(jsonArray);
 		
-		ArrayList <Message> resultArr = ObjectConverter.toArrayList(jsonArray);
+		ArrayList <Message> resultArr = MessageConverter.toArrayList(jsonArray);
 		assertEquals(originalArr.size(), resultArr.size());
 		
 		for (int i = 0; i < originalArr.size(); i++) {
@@ -89,7 +89,7 @@ public class TestObjectConverter {
 			array.add(message);
 		}
 		
-		String jsonArray = ObjectConverter.toJSONArray(array);
+		String jsonArray = MessageConverter.toJSONArray(array);
 		assertNotNull(jsonArray);
 		
 		System.out.println(jsonArray);

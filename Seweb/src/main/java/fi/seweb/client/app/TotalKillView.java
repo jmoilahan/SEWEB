@@ -8,9 +8,6 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import fi.seweb.R;
-import fi.seweb.R.id;
-import fi.seweb.R.layout;
-import fi.seweb.R.menu;
 import fi.seweb.client.xmpp.SewebNotificationService;
 
 public class TotalKillView extends Activity {

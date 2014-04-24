@@ -18,7 +18,8 @@ public class MessageStorageTest {
 	@After
 	public void tearDown() throws Exception {
 	}
-
+	
+	/*
 	@Test
 	public void testAddGetMessage() {
 		MessageStorage data = new MessageStorage();
@@ -82,4 +83,5 @@ public class MessageStorageTest {
 		
 		assertTrue(body.equalsIgnoreCase(lastMessage.getBody()));
 	}
+	*/
 }

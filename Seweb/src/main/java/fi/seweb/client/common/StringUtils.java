@@ -61,8 +61,8 @@ public class StringUtils {
 	 * An exception (IllegalArgumentException) is thrown otherwise.
 	 */
 	public static String parseTime(long timestamp) {
-		if (timestamp < MINTIME)
-			throw new IllegalArgumentException("timestamp must be a positive long");
+		if (timestamp <= MINTIME)
+			throw new IllegalArgumentException("timestamp must be a positive long: " + timestamp);
 		/*if (timestamp > MAXTIME) 
 			throw new IllegalArgumentException("timestamp is too large");
 			*/

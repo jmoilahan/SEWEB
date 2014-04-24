@@ -1,120 +1,114 @@
 package fi.seweb.client.app;
 
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Locale;
-
-import org.jivesoftware.smack.packet.Message;
-import org.jivesoftware.smack.util.StringUtils;
-
-import android.app.Activity;
+import android.annotation.TargetApi;
+import android.app.ListActivity;
+import android.app.LoaderManager;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.CursorLoader;
 import android.content.Intent;
+import android.content.Loader;
 import android.content.ServiceConnection;
 import android.content.res.Configuration;
-import android.graphics.Color;
+import android.database.Cursor;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.RemoteException;
-import android.text.Layout;
-import android.text.Spannable;
-import android.text.method.ScrollingMovementMethod;
-import android.text.style.ForegroundColorSpan;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.widget.LinearLayout;
+import android.widget.SimpleCursorAdapter;
 import fi.seweb.R;
 import fi.seweb.client.common.SewebPreferences;
-import fi.seweb.client.core.ObjectConverter;
+import fi.seweb.client.db.MessageContentProvider;
+import fi.seweb.client.db.MessageTable;
+import fi.seweb.client.db.RosterTable;
 import fi.seweb.client.xmpp.IXMPPChatCallback;
 import fi.seweb.client.xmpp.IXMPPChatService;
 
 
-public class ChatView extends Activity {
+@TargetApi(Build.VERSION_CODES.HONEYCOMB)
+public class ChatView extends ListActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 
 	public final static String TAG = "ChatView";
-	
-	private boolean mBound;
+	private SimpleCursorAdapter adapter;
+	private boolean mBound = false;
 	private IXMPPChatService mChatService;
 	private String mRemoteUserJID = null;
-	
-	 @Override
-	 public void onCreate(Bundle savedInstanceState) {
-		 Log.i(TAG, "OnCreate() called");
-		 super.onCreate(savedInstanceState);
-	     
-		 setContentView(R.layout.activity_chat);
+	private String mMyJID = null;
+	private SewebPreferences mConfig;
+		
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		Log.i(TAG, "OnCreate() called");
+		super.onCreate(savedInstanceState);
+		
+		mConfig = new SewebPreferences(PreferenceManager
+				.getDefaultSharedPreferences(this));
+		mMyJID = mConfig.getMyFullJid();
+		
+		setContentView(R.layout.activity_chat_new);
 		 
-		 //bind using the Chat Service interface
-	     bindService(new Intent(IXMPPChatService.class.getName()),
-	                mChatServiceConnection, Context.BIND_AUTO_CREATE);
+		//bind using the Chat Service interface
+	    bindService(new Intent(IXMPPChatService.class.getName()),
+	               mChatServiceConnection, Context.BIND_AUTO_CREATE);
 	     
-	     // since we know where the activity was started from 
-	     // (either the buddylist or the tray notification)
-	     // we need to get the remote_jid when sending our messages 
-	     
-	     Bundle b = getIntent().getExtras();
-	     	if (b != null) {
+	    Bundle b = getIntent().getExtras();
+	    	if (b != null) {
 	     		if (getIntent().hasExtra("remoteJID")) {
 	     			mRemoteUserJID = b.getString("remoteJID");
 	     		} else {
 	 		 		Log.e(TAG, "Remote_JID is not found in the bundle!");
+	 		 		throw new RuntimeException("Remote JID not found");
 	 	 		}
 	     	}
-	     
-	     TextView tvChat = (TextView) findViewById(R.id.tvChatAll);
-	     tvChat.setMovementMethod(new ScrollingMovementMethod());
-	  
-	     final Button btSendMessage = (Button) findViewById(R.id.btSendMessage);
-	     btSendMessage.setOnClickListener(new View.OnClickListener() {
-	       	@Override public void onClick(View v) {
-	       		Log.i(TAG, "OnClick() called");
-	       		// adding our new message to the text view
-				EditText editText = (EditText) findViewById(R.id.editMessage);
-				String message = editText.getText().toString();
-				if (message.length() != 0 && message != null ) {
-					String from = SewebPreferences.USERNAME; // our name
-					long timestamp = System.currentTimeMillis();
-					addNewChatMessage(from, message, fi.seweb.client.common.StringUtils.parseTime(timestamp), Color.RED);
+	    	
+    	final Button btSendMessage = (Button) findViewById(R.id.chatSendButton);	    	
+	    btSendMessage.setOnClickListener(mOnClickListener);
+	    fillData();
+	}
+	
+	private void fillData() {
+		// Fields from the database (projection)
+	    String[] from = new String [] { MessageTable.MESSAGE_TIMESTAMP, MessageTable.MESSAGE_BODY };
+	    int[] to = new int[] { R.id.txtInfo, R.id.txtMessage };
+	    getLoaderManager().initLoader(0, null, this);
+	    adapter = new SimpleCursorAdapter(this, R.layout.chat_row, null, from, to, 0);
+	    adapter.setViewBinder(new MessageViewBinder());
+	    setListAdapter(adapter);
+	}
+	
+	private final View.OnClickListener mOnClickListener = new View.OnClickListener() {
+       	@Override public void onClick(View v) {
+       		Log.i(TAG, "OnClick() called");
+	
+       		EditText editText = (EditText) findViewById(R.id.messageEdit);
+			String message = editText.getText().toString();
+			if (message.length() != 0 && message != null ) {
+				if (mBound) {
 					try {
-						if (mBound) {
-							mChatService.sendMessage(mRemoteUserJID, message, timestamp);
-						}
+						mChatService.sendMessage(mRemoteUserJID, message);
+						Log.i(TAG, "message dispatched to the service: " + message);
 					} catch (RemoteException e) {
 						Log.e(TAG, e.getMessage());
 					}
 				}
-				editText.setText("");
 			}
-		});
-	 }
+			editText.setText("");
+		}
+	};
 	
 	private final Handler mHandler = new Handler(Looper.getMainLooper()) {
 		@Override public void handleMessage(android.os.Message msg) {
 			Log.i(TAG, "handleMessage() called");
-			if (msg.what == SewebPreferences.NEW_CHAT_MESSAGE) {
-				// new incoming chat message has arrived
-				String [] payload = (String[]) msg.obj;
-				if (payload.length > 0) {
-					String body = payload[0]; 
-					String timestamp = payload[1];
-					
-					if (body != null && body.length() != 0 && timestamp != null && timestamp.length() != 0) {
-						final String from = mRemoteUserJID; //StringUtils.parseName(address);
-						addNewChatMessage(from, body, timestamp, Color.GREEN);
-						Log.i(TAG, String.format("Adding new message '%1$s' from %2$s", body, from));
-					}
-				}
-			}
 		}
 	}; 
 	
@@ -123,36 +117,12 @@ public class ChatView extends Activity {
 		public void onServiceConnected(final ComponentName name, final IBinder service) {
 			Log.i(TAG, "onServiceConnected()");
 			mChatService = IXMPPChatService.Stub.asInterface(service);
-			mBound = true;
-			
 			try {
 				mChatService.registerChatCallback(mChatCallback);
+				mChatService.clearNotifications(mRemoteUserJID);
+				mBound = true;
 			} catch (RemoteException e) {
 				Log.e(TAG, "Failed to register chat callback");
-			}
-			
-			/* Show the last message */
-			try {
-				String lastMessageStr = mChatService.obtainLastMessage(mRemoteUserJID);
-				if (lastMessageStr != null && lastMessageStr.length() != 0) {
-					
-					ArrayList<Message> messageArray = ObjectConverter.toArrayList(lastMessageStr);
-					//Message message = ObjectConverter.toMessage(lastMessageStr);
-					if (!messageArray.isEmpty()) {
-						for (Message m : messageArray) {
-							String from = StringUtils.parseBareAddress(m.getFrom());
-							String timestamp = fi.seweb.client.common.StringUtils.parseTime((Long) m.getProperty("timestamp"));
-							
-							if (from.equalsIgnoreCase(mRemoteUserJID)) {
-								addNewChatMessage(from, m.getBody(), timestamp, Color.GREEN);
-							} else {
-								addNewChatMessage(from, m.getBody(), timestamp, Color.RED);
-							}
-						}
-					}
-				} // do nothing if message is null or empty 
-			} catch (RemoteException e) {
-				Log.e(TAG, "Failed to obtain the most recent message");
 			}
 		}
 
@@ -166,51 +136,21 @@ public class ChatView extends Activity {
 	
 	private IXMPPChatCallback mChatCallback = new IXMPPChatCallback.Stub() {
 		@Override
-		public void newChatMessageReceived(String chat, String message, long timestamp)
+		public void newChatMessageReceived(final String chat, final String message, final long timestamp)
 				throws RemoteException {
 			Log.i(ChatView.TAG, "newChatMessageReceived() called");
-			
-    		String [] payload =  {message, fi.seweb.client.common.StringUtils.parseTime(timestamp)}; 
-			android.os.Message msg = mHandler.obtainMessage();
-    		msg.what = SewebPreferences.NEW_CHAT_MESSAGE;
-    		msg.obj = payload;
-			mHandler.sendMessage(msg);
+		}
+
+		@Override
+		public String getRemoteUserJID() throws RemoteException {
+			Log.i(ChatView.TAG, "getRemoteUserJID() called");
+			return mRemoteUserJID;
 		}
 	};
     
-    private static void addColoredText(TextView tv, String text, int color){
-      	     int start = tv.getText().length();
-    	     tv.append(text);
-    	     int end = tv.getText().length();
-    	     Spannable spannableText = (Spannable) tv.getText();
-    	     spannableText.setSpan(new ForegroundColorSpan(color), start, end, 0);
-    }
-    
-    private void addNewChatMessage (String from, String msg, String timestamp, int color) {
-    	TextView chatView = (TextView) findViewById(R.id.tvChatAll);
-    	/*    	
-    	SimpleDateFormat sdf = new SimpleDateFormat("[HH:mm:ss]", Locale.UK);
-    	String currentTime = sdf.format(new Date());
-    	*/
-    	
-    	addColoredText(chatView, timestamp, Color.GRAY);
-    	addColoredText(chatView, " " + from + ": ", color);
-    	chatView.append(msg + "\n");
-    	
-    	final Layout layout = chatView.getLayout();
-        if (layout != null){
-            int scrollOffset = layout.getLineBottom(chatView.getLineCount() - 1) 
-                - chatView.getScrollY() - chatView.getHeight();
-            if (scrollOffset > 0)
-                chatView.scrollBy(0, scrollOffset);
-        }
-    }
-    
 	@Override
 	public void onDestroy(){
-		super.onDestroy();
 		Log.i(TAG,"OnDestroy() has been called");
-
 		if (mBound) {
 			try {
 				mChatService.unregisterChatCallback(mChatCallback);
@@ -218,9 +158,11 @@ public class ChatView extends Activity {
 			} catch (RemoteException e) {
 				Log.e(TAG, e.getMessage());
 			}
-			unbindService(mChatServiceConnection);
-			Log.i(TAG,"Service disconnected");
+			mBound = false;
 		}
+		unbindService(mChatServiceConnection);
+		Log.i(TAG,"Service disconnected");
+		super.onDestroy();
 	}
 	
     @Override
@@ -239,5 +181,26 @@ public class ChatView extends Activity {
       super.onConfigurationChanged(newConfig);
       Log.i(TAG, "OnConfigurationChanged() called");
     }
-    
+
+	@Override
+	public Loader<Cursor> onCreateLoader(int id, Bundle bundle) {
+		 String[] projection = MessageTable.PROJECTION;
+		 String selection = "( " + MessageTable.MESSAGE_FROM + " = ? AND " + MessageTable.MESSAGE_TO + " = ? )" + " OR " +
+				 			"( " + MessageTable.MESSAGE_TO + " = ? AND " + MessageTable.MESSAGE_FROM + " = ? )";
+		 String[] selectionArgs = new String[] {mMyJID, mRemoteUserJID, mMyJID, mRemoteUserJID};
+		 
+		 CursorLoader cursorLoader = new CursorLoader(this,
+				 MessageContentProvider.CONTENT_URI, projection, selection, selectionArgs, null);
+		 return cursorLoader;
+	}
+
+	@Override
+	public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+		adapter.swapCursor(data);
+	}
+
+	@Override
+	public void onLoaderReset(Loader<Cursor> loader) {
+		adapter.swapCursor(null);
+	}
 }

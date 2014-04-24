@@ -10,9 +10,9 @@ import org.json.JSONObject;
 
 import android.util.Log;
 
-public class ObjectConverter {
+public class MessageConverter {
 	
-	private static final String TAG = "ObjectConverter";
+	private static final String TAG = "MessageConverter";
 	private static final String TAG_BODY = "body";
 	private static final String TAG_FROM = "from";
 	private static final String TAG_TO = "to";
@@ -206,7 +206,7 @@ public class ObjectConverter {
 		}
 	}
 	
-	private ObjectConverter() {
+	private MessageConverter() {
 		throw new AssertionError("Not supposed to be instantiated");
 	}
 

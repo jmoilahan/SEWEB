@@ -1,6 +1,8 @@
-
     <resources>
         <color name="blue">#3300CC</color>
         <color name="grey">#888888</color>
         <color name="red">#ff0000</color>
+        <color name="black">#000000</color>
+        <color name="light_blue">#3e9acf</color>
+		<color name="light_grey">#cbccc8</color>                
     </resources>

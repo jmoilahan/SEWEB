@@ -7,7 +7,7 @@
 		android:layout_width="wrap_content" android:layout_height="wrap_content"
 		android:layout_marginRight="4dp" android:longClickable="false"
 		android:paddingLeft="12sp"
-		android:src="@drawable/ic_launcher" />
+	/>
 	
 	<LinearLayout android:layout_width="fill_parent"
 		android:layout_height="wrap_content" android:orientation="vertical"
@@ -18,57 +18,14 @@
 			android:paddingLeft="10dp" android:longClickable="false"
 			android:textSize="20sp" android:layout_width="fill_parent"
 			android:layout_height="wrap_content" android:singleLine="true"
-			android:text = "tmp" />
+		 />
 
 		<TextView android:id="@+id/buddyStatus"
 			android:paddingLeft="10dp"
 			android:textSize="13sp" android:layout_width="fill_parent"
 			android:layout_height="wrap_content" android:singleLine="true"
-			android:ellipsize="end" android:visibility="gone"
-			android:text = "tmp" 
-			/>
+			android:ellipsize="end"
+		/>
 
 	</LinearLayout>
 </LinearLayout>
-
-
-<!-- LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="horizontal"
-    android:padding="4dip" >
-
-    <ImageView
-        android:id="@+id/buddyIcon"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:contentDescription="@string/presence_icon"
-        android:src="@drawable/ic_launcher" />
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="center_horizontal"
-        android:orientation="vertical"
-        android:padding="4dip" >
-
-        <TextView
-            android:id="@+id/buddyJid"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:padding="10dip"
-            android:text="jid"
-            android:textSize="16sp" />
-        
-        <TextView
-            android:id="@+id/buddyStatus"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:padding="10dip"
-            android:text="status"
-            android:textSize="10sp" />
-
-    </LinearLayout>
-
-</LinearLayout> -->
-

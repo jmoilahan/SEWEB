@@ -21,11 +21,12 @@
     <uses-permission android:name="android.permission.AUTHENTICATE_ACCOUNTS" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.WRITE_CONTACTS" />
-
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    
     <uses-sdk
         android:minSdkVersion="8"
-        android:targetSdkVersion="8" />
-    
+        android:targetSdkVersion="13" />
+
     <instrumentation
         android:name="android.test.InstrumentationTestRunner"
         android:targetPackage="fi.seweb.client.common" >
@@ -37,13 +38,12 @@
         android:icon="@drawable/seweb_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
-        
         <uses-library android:name="android.test.runner" />
-        
         <activity
             android:name="fi.seweb.client.app.LoginView"
-            android:label="@string/app_name"
-            android:configChanges="keyboardHidden|orientation" >
+            android:configChanges="keyboardHidden|orientation"
+            android:label="@string/title_activity_login"
+            android:windowSoftInputMode="adjustResize|stateVisible" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -51,8 +51,10 @@
         </activity>
         <activity
             android:name="fi.seweb.client.app.BuddyListView"
+            android:configChanges="keyboardHidden|orientation"
             android:label="@string/app_name"
-            android:configChanges="keyboardHidden|orientation"  >
+            android:launchMode="singleTask"
+            android:theme="@style/customTheme" >
         </activity>
         <activity
             android:name="fi.seweb.client.app.TotalKillView"
@@ -62,19 +64,39 @@
             android:name="fi.seweb.client.app.ChatView"
             android:label="@string/title_activity_chat" >
         </activity>
-
-        <service 
-            android:name="fi.seweb.client.xmpp.SewebNotificationService" 
-            android:process=":remote"
-            android:exported="false">
-			<intent-filter>
-                <!-- These are the interfaces supported by the service, which
-                     you can bind to. -->
+        
+        <service
+            android:name="fi.seweb.client.xmpp.SewebNotificationService"
+            android:exported="false"
+            android:process=":remote" >
+            <intent-filter>
+			<!--  The interfaces supported by the background service -->
                 <action android:name="fi.seweb.client.xmpp.IXMPPRosterService" />
                 <action android:name="fi.seweb.client.xmpp.IXMPPChatService" />
-           </intent-filter>
-         </service>
+            </intent-filter>
+        </service>
+		
+        <service
+        	android:name="fi.seweb.client.gpslogger.SewebGPSLoggerService"
+        	android:permission="android.permission.ACCESS_FINE_LOCATION"
+            android:exported="false">
+        </service>
+        
+        <provider
+            android:name="fi.seweb.client.db.RosterContentProvider"
+            android:authorities="fi.seweb.provider.Roster" >
+        </provider>
+        
+        <provider
+            android:name="fi.seweb.client.db.MessageContentProvider"
+            android:authorities="fi.seweb.provider.Messages" >
+        </provider>
+        
+        <!-- provider android:name=".data.ChatProvider"
+			android:authorities="org.yaxim.androidclient.provider.Chats" />
+		<provider android:name=".data.RosterProvider"
+			android:authorities="org.yaxim.androidclient.provider.Roster" /-->
 
-     </application>
+    </application>
 
 </manifest>

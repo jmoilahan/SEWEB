@@ -4,9 +4,10 @@ import fi.seweb.client.xmpp.IXMPPRosterCallback;
 
 interface IXMPPRosterService {
 	
-	/* xmpp methods 
-	void disconnect();
-	void connect(); */
+	/* xmpp methods */ 
+	void updatePresence(int presenceCode, String statusMsg);
+	void connect();
+	boolean isConnected();
 	
 	/*void addRosterItem(String user, String alias, String group);
 	void addRosterGroup(String group);
@@ -16,7 +17,8 @@ interface IXMPPRosterService {
 	void renameRosterItem(String user, String newName);
 	void moveRosterItemToGroup(String user, String group);*/
 	
-	//String[] getRosterItems();
+	/* fetch the entire roster */
+ 	// String getRosterEntries();
 	
 	/* callback methods */
 	void registerRosterCallback(IXMPPRosterCallback callback);
