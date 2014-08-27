@@ -50,6 +50,7 @@ import fi.seweb.client.db.RosterTable;
 import fi.seweb.client.xmpp.IXMPPRosterCallback;
 import fi.seweb.client.xmpp.IXMPPRosterService;
 
+
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
 public class BuddyListView extends ListActivity implements
 								LoaderManager.LoaderCallbacks<Cursor> {

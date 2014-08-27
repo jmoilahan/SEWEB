@@ -1,26 +1,70 @@
 package fi.seweb.client.common;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
+import android.os.Environment;
 import android.util.Log;
 
 
 public class SewebPreferences implements OnSharedPreferenceChangeListener {
 	public static final String TAG = "SewebPreferences";
 	
-	/*
-	public static final String DOMAIN = "seweb.p1.im";
-	public static final String USERNAME = "android";
-	public static final String PASSWORD = "1";
-	public static final int PORT = 5222;
-	*/ 
+	//Variables
+	public static String PASSWORD;
+	public static String DOMAIN;
+	public static String USERNAME;
 	
-	public final static String DEFAULT_PASSWORD = "1";
-	public final static String DEFAULT_DOMAIN = "seweb.p1.im";
-	public final static String DEFAULT_USERNAME = "oleg";
+	/* User information is read from ~/SEWEB/userpass.txt and saved
+	 * Could use some changes for cleanier code and better handling of errors
+	 */
+	File sdcard = Environment.getExternalStorageDirectory();
+	File file = new File(sdcard,"SEWEB/userpass.txt");
+
+	StringBuilder text = new StringBuilder(); {
+
+	try {
+	    BufferedReader br = new BufferedReader(new FileReader(file));
+	    
+	    PASSWORD = br.readLine();
+	    DOMAIN = br.readLine();
+	    USERNAME = br.readLine();
+
+	    br.close();
+	    
+	    /* If password, domain or username is empty or null, force login screen to show an error
+	     * Possible TODO: fix error handling to a better one; this one works most of the time but is messy
+	     */
+	    if (PASSWORD == "" || PASSWORD == null) {
+	    	PASSWORD = "";
+		    DOMAIN = "";
+		    USERNAME = "";
+	    } else if (DOMAIN == "" || DOMAIN == null) {
+	    	PASSWORD = "";
+		    DOMAIN = "";
+		    USERNAME = "";
+	    } else if (USERNAME == "" || USERNAME == null) {
+	    	PASSWORD = "";
+		    DOMAIN = "";
+		    USERNAME = "";
+	    }
+	    
+	    // If file is missing, force login screen to show an error
+	} catch (IOException e) {
+		
+	    PASSWORD = "";
+	    DOMAIN = "";
+	    USERNAME = "";
+	    
+	    }
+	}	
 	
 	/* Seweb Location Sharing Servlet */
-	public final static String SERVLET_URL = "http://188.226.173.230:8080/SewebServer/Seweb";
+	public final static String SERVLET_URL = "http://107.170.73.18:8080//SewebServer/Seweb";
 		
 	/* Default port for normal connections is 5222, for SSL connections is 5223 */
 	public final static String DEFAULT_PORT = "5222";
@@ -72,15 +116,37 @@ public class SewebPreferences implements OnSharedPreferenceChangeListener {
 	
 	private void loadPreferences(SharedPreferences preferences) {
 		
-		this.mUsername = preferences.getString(SewebPreferences.TAG_USERNAME, SewebPreferences.DEFAULT_USERNAME);
-		this.mDomain =  preferences.getString(SewebPreferences.TAG_DOMAIN, SewebPreferences.DEFAULT_DOMAIN);
+		this.mUsername = preferences.getString(SewebPreferences.TAG_USERNAME, SewebPreferences.USERNAME);
+		this.mDomain =  preferences.getString(SewebPreferences.TAG_DOMAIN, SewebPreferences.DOMAIN);
+			
+		/* A workaround for invalid Jids and missing login information
+		 * Possible TODO: fix error handling to a better one, old IllegalArgumentException caused crashes in login if
+		 * there were problems with the login file information
+		 */
+
+		if (!fi.seweb.client.common.StringUtils.isValidJid(mUsername + "@" + mDomain)) {
+			this.mUsername = null;
+			this.mDomain = "invalid.jid";
+		}
+		 //Replaces this
+		 //if (!fi.seweb.client.common.StringUtils.isValidJid(mUsername + "@" + mDomain)) {
+		 //throw new IllegalArgumentException("Incorrect username or/and domain: " + mUsername + "@" + mDomain );
 		
-		if (!fi.seweb.client.common.StringUtils.isValidJid(mUsername + "@" + mDomain))
-			throw new IllegalArgumentException("Incorrect username or/and domain: " + mUsername + "@" + mDomain );
+		/* A workaround for missing password
+		 * Possible TODO: fix error handling to a better one, old IllegalArgumentException caused crashes in login if
+		 * there were problems with the login file information
+		 * 
+		 * Had to add this as well because different devices reacted differently
+		 */
 		
-		this.mPassword = preferences.getString(SewebPreferences.TAG_PASSWORD, SewebPreferences.DEFAULT_PASSWORD);
-		if (mPassword == null)
-			throw new IllegalArgumentException("Password is null");
+		this.mPassword = preferences.getString(SewebPreferences.TAG_PASSWORD, SewebPreferences.PASSWORD);
+		if (mPassword == null || mPassword == "") {
+			this.mUsername = null;
+			this.mDomain = "invalid.jid";
+		}
+		//this.mPassword = preferences.getString(SewebPreferences.TAG_PASSWORD, SewebPreferences.PASSWORD);	
+		//if (mPassword == null)
+		//	throw new IllegalArgumentException("Password is null");
 		
 		this.mPort = preferences.getInt(SewebPreferences.TAG_PORT, SewebPreferences.DEFAULT_PORT_INT);
 		
@@ -129,6 +195,7 @@ public class SewebPreferences implements OnSharedPreferenceChangeListener {
 	
 	public String getMyFullJid() {
 		String jid = mUsername + "@" + mDomain;
+		
 		if (!fi.seweb.client.common.StringUtils.isValidJid(jid)) {
 			throw new IllegalArgumentException("Incorrect jid: " + jid);
 		}

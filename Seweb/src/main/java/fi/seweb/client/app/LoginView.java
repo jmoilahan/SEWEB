@@ -13,11 +13,9 @@ import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
-import android.view.KeyEvent;
+import android.util.Log;
 import android.view.Menu;
 import android.view.View;
-import android.view.inputmethod.EditorInfo;
-import android.widget.EditText;
 import android.widget.TextView;
 import fi.seweb.R;
 import fi.seweb.client.common.SewebPreferences;
@@ -53,8 +51,8 @@ public class LoginView extends Activity {
 	private String mEmail;
 
 	// UI references.
-	private EditText mEmailView;
-	private EditText mPasswordView;
+	private TextView mEmailView;
+	private TextView mPasswordView;
 	private View mLoginFormView;
 	private View mLoginStatusView;
 	private TextView mLoginStatusMessageView;
@@ -72,32 +70,26 @@ public class LoginView extends Activity {
 
 		// Set up the login form.
 		//mEmail = getIntent().getStringExtra(EXTRA_EMAIL);
+		
 		mEmail = mConfig.getMyFullJid();
 		mPassword = mConfig.getPassword();
 		mUserName = mConfig.getUsername();
 		
-		mEmailView = (EditText) findViewById(R.id.email);
-		mEmailView.setText(mEmail);
-
-		mPasswordView = (EditText) findViewById(R.id.password);
-		mPasswordView.setText(mConfig.getPassword());
-		mPasswordView
-				.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-					@Override
-					public boolean onEditorAction(TextView textView, int id,
-							KeyEvent keyEvent) {
-						if (id == R.id.login || id == EditorInfo.IME_NULL) {
-							attemptLogin();
-							return true;
-						}
-						return false;
-					}
-				});
-
 		mLoginFormView = findViewById(R.id.login_form);
 		mLoginStatusView = findViewById(R.id.login_status);
 		mLoginStatusMessageView = (TextView) findViewById(R.id.login_status_message);
+		mPasswordView = (TextView) findViewById(R.id.password);
+		
+		// Display login information or error message
+		if ( mEmail.equals("null@invalid.jid") ) {
+			mEmailView = (TextView) findViewById(R.id.email);
+			mEmailView.setText("Login file ~/SEWEB/userpass.txt missing or wrong");
 
+		} else {
+			mEmailView = (TextView) findViewById(R.id.email);
+			mEmailView.setText("Log in as " + mEmail);
+		}
+	
 		findViewById(R.id.sign_in_button).setOnClickListener(
 				new View.OnClickListener() {
 					@Override
@@ -113,11 +105,19 @@ public class LoginView extends Activity {
 		getMenuInflater().inflate(R.menu.login, menu);
 		return true;
 	}
-
+	
+	// OLD VERSION:
 	/**
 	 * Attempts to sign in or register the account specified by the login form.
 	 * If there are form errors (invalid email, missing fields, etc.), the
 	 * errors are presented and no actual login attempt is made.
+	 */
+	
+	/* Current login is done by reading userpass.txt file and the possible errors are handled a bit differently
+	 * Older login information was hardcoded and didn't actually take into account the forms implemented on the 
+	 * login screen
+	 * 
+	 * TODO: Could use cleanup, code is a bit messy and redundant
 	 */
 	public void attemptLogin() {
 		if (mAuthTask != null) {
@@ -134,17 +134,28 @@ public class LoginView extends Activity {
 
 		boolean cancel = false;
 		View focusView = null;
-
+		
+		// OLD PASSWORD CHECK:
 		// Check for a valid password.
+		/*
 		if (TextUtils.isEmpty(mPassword)) {
 			mPasswordView.setError(getString(R.string.error_field_required));
 			focusView = mPasswordView;
 			cancel = true;
-		} /*else if (mPassword.length() < 4) {
+		} else if (mPassword.length() < 4) {
 			mPasswordView.setError(getString(R.string.error_invalid_password));
 			focusView = mPasswordView;
 			cancel = true;
-		}*/
+		} 
+		*/
+		
+		// Check for a valid password. Changed the focus to the email field.
+		// This workaround shows the error on the email field.
+		if (TextUtils.isEmpty(mPassword)) {
+			mEmailView.setError(getString(R.string.error_field_required));
+			focusView = mEmailView;
+			cancel = true;
+		}
 
 		// Check for a valid email address.
 		if (TextUtils.isEmpty(mEmail)) {

@@ -198,9 +198,31 @@ public class SewebNotificationService extends Service {
 							Log.e(TAG, "Failed to send the message " + e.getMessage());
 						}
 						mMessageDatabase.addMessage(chat.getThreadID(), xmppMessage);
-					} else { // connection is not available
+					} else { // connection is not available, inform user
+						Chat chat = null;
+						if (!mChats.isEmpty() && mChats.containsKey(toUser)) {
+							chat = mChats.get(toUser);
+							Log.i(TAG, "got an exising chat object");
+						} else { // need to create a new chat
+							chat = mXmppConnection.getChatManager().createChat(toUser, new SewebChatMessageListener());
+							if(!mChats.containsKey(toUser)) {
+								mChats.put(toUser, chat);
+							}
+							Log.i(TAG, "created a new chat object");
+						}
+						
+						String myJID = mConfig.getMyFullJid(); 
+						Message xmppMessage = new Message();
+						xmppMessage.setBody("Message failed to send. Connection not available. Try again later.");
+						xmppMessage.setFrom(myJID); // from us
+						xmppMessage.setTo(toUser);
+						xmppMessage.setThread(chat.getThreadID());
+						
+						mMessageDatabase.addMessage(chat.getThreadID(), xmppMessage);						
+						
 						// TODO:
 						// register an offline message to send it later
+						
 					}
 				}
 			});
